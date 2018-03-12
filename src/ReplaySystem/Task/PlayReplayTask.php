@@ -13,6 +13,7 @@ use pocketmine\entity\Entity;
 use pocketmine\entity\Human;
 use pocketmine\item\Item;
 use pocketmine\level\Location;
+use pocketmine\level\Position;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\DoubleTag;
 use pocketmine\nbt\tag\FloatTag;
@@ -54,66 +55,64 @@ class PlayReplayTask extends PluginTask {
             foreach ($this->tempReplayData[$this->tempStart] as $sequenz) {
                 $edata = $this->tempEntityData[$sequenz["EntityId"]]["Entity"];
                 if (!($this->tempEntityData[$sequenz["EntityId"]]["Spawned"])) {
-                    if ($edata instanceof Entity) {
-                        if ($edata instanceof Human) {
-                            $nbt = new CompoundTag("", [
-                                "Pos" => new ListTag("Pos", [
-                                    new DoubleTag("", $edata->getX()),
-                                    new DoubleTag("", $edata->getY()),
-                                    new DoubleTag("", $edata->getZ())
-                                ]),
-                                "Motion" => new ListTag("Motion", [
-                                    new DoubleTag("", 0),
-                                    new DoubleTag("", 0),
-                                    new DoubleTag("", 0)
-                                ]),
-                                "Rotation" => new ListTag("Rotation", [
-                                    new FloatTag("", 90),
-                                    new FloatTag("", 0)
-                                ]),
-                                "Skin" => new CompoundTag("Skin", [
-                                        "Data" => new StringTag("Data", $edata->getSkin()->getSkinData()),
-                                        "Name" => new StringTag("Name", $edata->getSkin()->getSkinId())
-                                    ]
-                                ),
-                                "ReplayEntity" => new StringTag("ReplayEntity", "true"),
-                            ]);
+                    if ($edata["NETWORK_ID"] == -1) {
+                        var_dump("Spawn Human");
+                        $nbt = new CompoundTag("", [
+                            "Pos" => new ListTag("Pos", [
+                                new DoubleTag("", $edata["Position"]["X"]),
+                                new DoubleTag("", $edata["Position"]["Y"]),
+                                new DoubleTag("", $edata["Position"]["Z"])
+                            ]),
+                            "Motion" => new ListTag("Motion", [
+                                new DoubleTag("", 0),
+                                new DoubleTag("", 0),
+                                new DoubleTag("", 0)
+                            ]),
+                            "Rotation" => new ListTag("Rotation", [
+                                new FloatTag("", 90),
+                                new FloatTag("", 0)
+                            ]),
+                            "Skin" => new CompoundTag("Skin", [
+                                    "Data" => new StringTag("Data", $edata["Skin"]["Data"]),
+                                    "Name" => new StringTag("Name", $edata["Skin"]["Name"])
+                                ]
+                            ),
+                            "ReplayEntity" => new StringTag("ReplayEntity", "true"),
+                        ]);
 
-                            $entity = new Human($this->replay->getLevel(), $nbt);
+                        $entity = new Human($this->replay->getLevel(), $nbt);
 
-                            if (!is_null($edata->getNameTag()))
-                                $entity->setNameTag($edata->getNameTag());
+                        if (!is_null($edata["NameTag"]))
+                            $entity->setNameTag($edata["NameTag"]);
 
-                            $entity->setNameTagVisible(true);
-                            $entity->setNameTagAlwaysVisible(true);
-                            $entity->spawnToAll();
-                            $this->spawendEntity[$sequenz["EntityId"]] = $entity;
-                            $this->tempEntityData[$sequenz["EntityId"]]["Spawned"] = true;
+                        $entity->setNameTagVisible(true);
+                        $entity->setNameTagAlwaysVisible(true);
+                        $entity->spawnToAll();
+                        $this->spawendEntity[$sequenz["EntityId"]] = $entity;
+                        $this->tempEntityData[$sequenz["EntityId"]]["Spawned"] = true;
 
-                        }
                     }
                 }
                 if ($sequenz["Action"] === "Move") {
 
                     $entity = $this->spawendEntity[$sequenz["EntityId"]];
-                    if ($entity instanceof Entity) {
-                        $vec3 = $sequenz["Data"];
-                        if ($vec3 instanceof Location) {
-                            if ($entity instanceof Human) {
-                                $entity->newPosition = $vec3;
-                                $entity->setRotation($vec3->getYaw(), $vec3->getPitch());
-                                $this->processMovement($entity);
+                    if ($entity instanceof Human) {
+                        $vec3 = $sequenz["Data"]["Position"];
+                        if (!is_null($vec3)) {
+                            $entity->newPosition = new Location($vec3["X"], $vec3["Y"], $vec3["Z"], $vec3["Yaw"], $vec3["Pitch"], $this->replay->getLevel());
+                            $entity->setRotation($vec3["Yaw"], $vec3["Pitch"]);
+                            $this->processMovement($entity);
 
-                                if(!($entity->getInventory()->getItemInHand()->getId() === $sequenz["Item"]["Id"])) {
-                                    $entity->getInventory()->setItemInHand(Item::get($sequenz["Item"]["Id"]));
-                                    $entity->getInventory()->sendHeldItem($entity->getViewers());
-                                }
+                            if (!($entity->getInventory()->getItemInHand()->getId() === $sequenz["Item"]["Id"])) {
+                                $entity->getInventory()->setItemInHand(Item::get($sequenz["Item"]["Id"]));
+                                $entity->getInventory()->sendHeldItem($entity->getViewers());
+
                             }
                         }
                     }
                 } elseif ($sequenz["Action"] === "Damage") {
                     $entity = $this->spawendEntity[$sequenz["EntityId"]];
-                    if($entity instanceof Entity){
+                    if ($entity instanceof Entity) {
                         $entity->broadcastEntityEvent(EntityEventPacket::HURT_ANIMATION);
                     }
                 } elseif ($sequenz["Action"] === "Sneak") {
@@ -132,7 +131,7 @@ class PlayReplayTask extends PluginTask {
                 } elseif ($sequenz["Action"] === "Consume") {
                     $entity = $this->spawendEntity[$sequenz["EntityId"]];
                     if ($entity instanceof Entity) {
-                        if(!($entity->getInventory()->getItemInHand()->getId() === $sequenz["Item"]["Id"])) {
+                        if (!($entity->getInventory()->getItemInHand()->getId() === $sequenz["Item"]["Id"])) {
                             $entity->getInventory()->setItemInHand(Item::get($sequenz["Item"]["Id"]));
                             $entity->getInventory()->sendHeldItem($entity->getViewers());
                         }
