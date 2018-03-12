@@ -10,6 +10,7 @@ namespace ReplaySystem\Manager;
 
 
 use pocketmine\entity\Entity;
+use pocketmine\entity\Human;
 use pocketmine\item\Item;
 use pocketmine\level\Level;
 use ReplaySystem\ReplaySystem;
@@ -31,9 +32,24 @@ class Replay {
     private $replayData = [];
     private $entityData = [];
 
-    public function __construct(Level $level) {
+    public function __construct(Level $level, $data = null) {
         $this->level = $level;
         $this->start = $level->getServer()->getTick();
+
+        if(is_array($data)) {
+            foreach ($data as $index => $d){
+                if($index === "state")
+                    $this->state = $d;
+                if($index === "start")
+                    $this->start = $d;
+                if($index === "stop")
+                    $this->stop = $d;
+                if($index === "replayData")
+                    $this->replayData = $d;
+                if($index === "entityData")
+                    $this->entityData = $d;
+            }
+        }
 
         $this->setActive();
     }
@@ -104,7 +120,13 @@ class Replay {
         if ($this->isRegisteredEntity($entity->getId()))
             return true;
 
-        $this->entityData[$entity->getId()] = ["Entity" => $entity, "NETWORK_ID" => $entity::NETWORK_ID, "Spawned" => false];
+        $sdata = null;
+        $sname = null;
+        if($entity instanceof Human){
+            $sdata = $entity->getSkin()->getSkinData();
+            $sname = $entity->getSkin()->getSkinId();
+        }
+        $this->entityData[$entity->getId()] = ["Entity" => ["NETWORK_ID" => $entity::NETWORK_ID, "Position" => ["X" => $entity->x, "Y" => $entity->y, "Z" => $entity->z], "Skin" => ["Data" => $sdata, "Name" => $sname], "NameTag" => $entity->getNameTag()], "Spawned" => false];
         return true;
     }
 
@@ -174,17 +196,21 @@ class Replay {
      * @param string $id
      * @return bool
      */
-    /*public function saveAs(string $id){
+    public function saveAs(string $id){
         $path = ReplaySystem::getInstance()->getDataFolder() . "save/" . $id . ".json";
-        $data = [
-            "state"=> $this->state,
-            "level"=> $this->level,
-            "start"=> $this->start,
-            "stop"=> $this->stop,
-            "replayData"=> $this->replayData,
-            "entityData"=> $this->entityData,
-        ];
-        file_put_contents($path, json_encode($data));
-        return true;
-    }*/
+        if(!file_exists($path)) {
+            $data = [
+                "state" => $this->state,
+                "levelname" => $this->level->getFolderName(),
+                "start" => $this->start,
+                "stop" => $this->stop,
+                "replayData" => $this->replayData,
+                "entityData" => $this->entityData,
+            ];
+            var_dump(serialize($data));
+            file_put_contents($path, serialize($data));
+            return true;
+        }
+        return false;
+    }
 }

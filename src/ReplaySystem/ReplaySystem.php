@@ -58,8 +58,8 @@ class ReplaySystem extends PluginBase {
 
         self::$instance = $this;
 
-        /*@mkdir($this->getDataFolder());
-        @mkdir($this->getDataFolder() . "save/");*/
+        @mkdir($this->getDataFolder());
+        @mkdir($this->getDataFolder() . "save/");
 
         $this->getServer()->getPluginManager()->registerEvents(new onPlayerMove(), $this);
         $this->getServer()->getPluginManager()->registerEvents(new onEntityDamage(), $this);

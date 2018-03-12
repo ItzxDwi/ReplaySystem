@@ -24,7 +24,7 @@ class onPlayerMove implements Listener {
             if ($replay = ReplayManager::getActiveReplayByLevel($level)) {
                 if ($replay instanceof Replay) {
                     $replay->addEntity($entity);
-                    $replay->addEntry("Move", $entity->getId(), $event->getTo(), ["Id" => $entity->getInventory()->getItemInHand()->getId()]);
+                    $replay->addEntry("Move", $entity->getId(), ["Position" => ["X" => $event->getTo()->x, "Y" => $event->getTo()->y, "Z" => $event->getTo()->z, "Yaw" => $entity->getYaw(), "Pitch" => $entity->getPitch()]], ["Id" => $entity->getInventory()->getItemInHand()->getId()]);
                 }
             }
         }
