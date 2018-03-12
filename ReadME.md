@@ -12,7 +12,7 @@ The ReplaySystem is a plugin for Pocketmine where you can record players. You ca
 
 # News:
 
-Release
+Sequence also available after server restart
 
 # Features
 
@@ -20,7 +20,7 @@ Release
  
  - manually entering the speed of the sequence
  
- - Sequence also available after server restart (soon)
+ - Sequence also available after server restart
 
 # Phar:
 
@@ -40,13 +40,16 @@ get the latest .phar from the release directoy
 
 <br>
 
-#Commands:
+# Commands:
 
 | Command | Description | Permission |
 | --- | --- | --- |
 | /replay start | start a recording | replay.command |
 | /replay stop | stop a recording | replay.command |
 | /replay play [speed:1] | play a recording | replay.command |
+| /replay save [name] | save your current recording | replay.command |
+| /replay playsave [name] [speed:1] | play a saved recording | replay.command |
+| /replay play [speed:1] | list all saved recording | replay.command |
 
 
 
