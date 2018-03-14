@@ -1,4 +1,4 @@
-# Pocketmine ReplaySystem Plugin by @McpeBooster  [![Build Status](https://travis-ci.org/McpeBooster/ReplaySystem-McpeBooster.svg?branch=master)](https://travis-ci.org/McpeBooster/ReplaySystem-McpeBooster)
+# Pocketmine ReplaySystem Plugin by @McpeBooster  [![](https://poggit.pmmp.io/shield.api/ReplaySystem)](https://poggit.pmmp.io/p/ReplaySystem)
 
 
 
@@ -24,7 +24,7 @@ Sequence also available after server restart
 
 # Phar:
 
-get the latest .phar from the release directoy
+get the latest .phar from the poggit page: https://poggit.pmmp.io/p/ReplaySystem/
 
 <br>
 
