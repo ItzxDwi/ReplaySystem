@@ -207,7 +207,7 @@ class Replay {
                 "replayData" => $this->replayData,
                 "entityData" => $this->entityData,
             ];
-            var_dump(serialize($data));
+            //var_dump(serialize($data));
             file_put_contents($path, serialize($data));
             return true;
         }

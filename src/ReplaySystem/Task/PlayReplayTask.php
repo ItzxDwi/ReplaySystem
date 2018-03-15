@@ -56,7 +56,7 @@ class PlayReplayTask extends PluginTask {
                 $edata = $this->tempEntityData[$sequenz["EntityId"]]["Entity"];
                 if (!($this->tempEntityData[$sequenz["EntityId"]]["Spawned"])) {
                     if ($edata["NETWORK_ID"] == -1) {
-                        var_dump("Spawn Human");
+                        //var_dump("Spawn Human");
                         $nbt = new CompoundTag("", [
                             "Pos" => new ListTag("Pos", [
                                 new DoubleTag("", $edata["Position"]["X"]),
