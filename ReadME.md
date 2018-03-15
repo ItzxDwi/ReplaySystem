@@ -62,7 +62,11 @@ get the latest .phar from the poggit page: https://poggit.pmmp.io/p/ReplaySystem
 
 [![Alt text](https://img.youtube.com/vi/SKJHoVs0MLY/0.jpg)](https://www.youtube.com/watch?v=SKJHoVs0MLY)
 
-https://youtu.be/SKJHoVs0MLY
+Preview by @McpeBooster: https://youtu.be/SKJHoVs0MLY
+
+[![Alt text](https://img.youtube.com/vi/_mak8Gg1PzU/0.jpg)](https://www.youtube.com/watch?v=_mak8Gg1PzU)
+
+Tutorial (German) by @iTzFreeHD: https://youtu.be/_mak8Gg1PzU
 
 <br>
 
