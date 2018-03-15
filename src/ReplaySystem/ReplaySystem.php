@@ -134,8 +134,8 @@ class ReplaySystem extends PluginBase {
                 $this->getLogger()->info("§aNew Update available!");
                 $this->getLogger()->info("§7Local Version: §6" . $version);
                 $this->getLogger()->info("§7Newest Version: §6" . $newversion);
-                $this->getLogger()->info("§aDownloading Newest Version... §7(" . $newversion . ")");
-                $path = dirname(__FILE__);
+                $this->getLogger()->info("§aPlease Download the Newest Version... §7(" . $newversion . ")");
+                /*$path = dirname(__FILE__);
                 if (is_dir($path)) {
                     $this->updateDir(str_replace("src/ReplaySystem", "", $path));
                 } else {
@@ -147,7 +147,7 @@ class ReplaySystem extends PluginBase {
                         return false;
                     }
                 }
-                $this->getLogger()->info("§aSuccessfully downloaded Newest Version... §7(" . $newversion . ")");
+                $this->getLogger()->info("§aSuccessfully downloaded Newest Version... §7(" . $newversion . ")");*/
                 return true;
             }
         }
