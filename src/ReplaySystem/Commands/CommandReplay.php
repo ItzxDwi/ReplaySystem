@@ -83,6 +83,16 @@ class CommandReplay extends Command {
                         $player->sendMessage(ReplaySystem::PREFIX . "§7------" . ReplaySystem::PREFIX . "------");
                         return true;
 
+                    } elseif ($args[0] === "deletesave") {
+                        if (!empty($args[1])) {
+                            if (ReplayManager::deleteReplayByName($args[1])) {
+                                $player->sendMessage(ReplaySystem::PREFIX . " Replay successfully deleted");
+                                return true;
+                            }
+                        }
+                        $player->sendMessage(ReplaySystem::PREFIX . " §cReplay delete error");
+                        return false;
+
                     } elseif ($args[0] === "save") {
                         if (!empty($args[1])) {
                             if (ReplayManager::saveReplay($player->getLevel(), $args[1])) {
@@ -103,6 +113,7 @@ class CommandReplay extends Command {
         $sender->sendMessage(ReplaySystem::PREFIX . "§7-> §e/replay play [speed:1]");
         $sender->sendMessage(ReplaySystem::PREFIX . "§7-> §e/replay save [name]");
         $sender->sendMessage(ReplaySystem::PREFIX . "§7-> §e/replay playsave [name] [speed:1]");
+        $sender->sendMessage(ReplaySystem::PREFIX . "§7-> §e/replay deletesave [name]");
         $sender->sendMessage(ReplaySystem::PREFIX . "§7-> §e/replay listsave");
         $sender->sendMessage(ReplaySystem::PREFIX . "§7------" . ReplaySystem::PREFIX . "------");
     }

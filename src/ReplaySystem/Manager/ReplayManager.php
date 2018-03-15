@@ -165,4 +165,13 @@ class ReplayManager {
         }
         return false;
     }
+
+    public static function deleteReplayByName(string $id){
+        $path = ReplaySystem::getInstance()->getDataFolder() . "save/" . $id . ".json";
+        if(file_exists($path)) {
+            unlink($path);
+            return true;
+        }
+        return false;
+    }
 }

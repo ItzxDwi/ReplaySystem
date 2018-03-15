@@ -8,11 +8,13 @@
 
 The ReplaySystem is a plugin for Pocketmine where you can record players. You can play this sequence later, you can also set the speed when playing!
 
-<br>
+
+
+
 
 # News:
 
-Sequence also available after server restart
+Added the possibility to delete replays with a command
 
 # Features
 
@@ -26,11 +28,15 @@ Sequence also available after server restart
 
 get the latest .phar from the poggit page: https://poggit.pmmp.io/p/ReplaySystem/
 
-<br>
+
+
+
 
 # How to use:
 
-<br>
+
+
+
 
 | Step | Description |
 | --- | --- |
@@ -39,9 +45,12 @@ get the latest .phar from the poggit page: https://poggit.pmmp.io/p/ReplaySystem
 | 3 | play a recording with "/replay play [speed:1]" |
 | 4 | save your current recording with "/replay save [name]" |
 | 5 | play a saved recording with "/replay playsave [name] [speed:1]" |
-| 6 | list all saved recording with "/replay listsave" |
+| 6 | if you want, delete your saved recording with "/replay deleteysave [name]" |
+| 7 | list all saved recording with "/replay listsave" |
 
-<br>
+
+
+
 
 # Commands:
 
@@ -52,6 +61,7 @@ get the latest .phar from the poggit page: https://poggit.pmmp.io/p/ReplaySystem
 | /replay play [speed:1] | play a recording | replay.command |
 | /replay save [name] | save your current recording | replay.command |
 | /replay playsave [name] [speed:1] | play a saved recording | replay.command |
+| /replay deletesave [name] | delete a saved recording | replay.command |
 | /replay play [speed:1] | list all saved recording | replay.command |
 
 
@@ -68,9 +78,13 @@ Preview by @McpeBooster: https://youtu.be/SKJHoVs0MLY
 
 Tutorial (German) by @iTzFreeHD: https://youtu.be/_mak8Gg1PzU
 
-<br>
 
-<br>
+
+
+
+
+
+
 
 # Contact details:
 
