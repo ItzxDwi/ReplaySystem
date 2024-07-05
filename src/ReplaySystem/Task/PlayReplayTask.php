@@ -1,32 +1,22 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: McpeBooster
- * Date: 07.03.2018
- * Time: 13:44
- */
 
 namespace ReplaySystem\Task;
 
-
 use pocketmine\entity\Entity;
 use pocketmine\entity\Human;
+use pocketmine\entity\Location;
 use pocketmine\item\Item;
-use pocketmine\level\Location;
-use pocketmine\level\Position;
+use pocketmine\world\Position;
 use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\nbt\tag\DoubleTag;
-use pocketmine\nbt\tag\FloatTag;
-use pocketmine\nbt\tag\ListTag;
-use pocketmine\nbt\tag\StringTag;
+use pocketmine\entity\animation\{HurtAnimation, DeathAnimation, RespawnAnimation, ConsumingItemAnimation};
 use pocketmine\network\mcpe\protocol\AnimatePacket;
 use pocketmine\network\mcpe\protocol\EntityEventPacket;
-use pocketmine\network\mcpe\protocol\MoveEntityPacket;
-use pocketmine\scheduler\PluginTask;
+use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
+use pocketmine\scheduler\Task;
 use ReplaySystem\Manager\Replay;
 use ReplaySystem\ReplaySystem;
 
-class PlayReplayTask extends PluginTask {
+class PlayReplayTask extends Task {
 
     private $plugin;
     private $replay;
@@ -46,43 +36,23 @@ class PlayReplayTask extends PluginTask {
         $this->speed = $replay->getSpeed();
         $this->tempReplayData = $replay->getReplayData();
         $this->tempEntityData = $replay->getEntityData();
-        parent::__construct($this->plugin);
+        parent::__construct();
     }
 
-    public function onRun(int $currentTick) {
+    public function onRun(): void {
         $this->tempStart = $this->tempStart + $this->speed;
         if (isset($this->tempReplayData[$this->tempStart])) {
             foreach ($this->tempReplayData[$this->tempStart] as $sequenz) {
                 $edata = $this->tempEntityData[$sequenz["EntityId"]]["Entity"];
                 if (!($this->tempEntityData[$sequenz["EntityId"]]["Spawned"])) {
                     if ($edata["NETWORK_ID"] == -1) {
-                        //var_dump("Spawn Human");
-                        $nbt = new CompoundTag("", [
-                            "Pos" => new ListTag("Pos", [
-                                new DoubleTag("", $edata["Position"]["X"]),
-                                new DoubleTag("", $edata["Position"]["Y"]),
-                                new DoubleTag("", $edata["Position"]["Z"])
-                            ]),
-                            "Motion" => new ListTag("Motion", [
-                                new DoubleTag("", 0),
-                                new DoubleTag("", 0),
-                                new DoubleTag("", 0)
-                            ]),
-                            "Rotation" => new ListTag("Rotation", [
-                                new FloatTag("", 90),
-                                new FloatTag("", 0)
-                            ]),
-                            "Skin" => new CompoundTag("Skin", [
-                                    "Data" => new StringTag("Data", $edata["Skin"]["Data"]),
-                                    "Name" => new StringTag("Name", $edata["Skin"]["Name"])
-                                ]
-                            ),
-                            "ReplayEntity" => new StringTag("ReplayEntity", "true"),
-                        ]);
+                        $location = new Location($edata["Position"]["X"], $edata["Position"]["Y"], $edata["Position"]["Z"], $this->replay->getWorld(), 0.0, 0.0);
+                        $nbt = CompoundTag::create()->setTag("Skin", CompoundTag::create()->setString("Name", $edata["Skin"]["Name"])->setString("Data", $edata["Skin"]["Data"]));
+                        $nbt->setTag("ReplayEntity", CompoundTag::create()->setString("true"));
 
-                        $entity = new Human($this->replay->getLevel(), $nbt);
+                        $entity = new Human($location, Human::parseSkinNBT($nbt), $nbt);
 
-                        if (!is_null($edata["NameTag"]))
+                        if (is_string($edata["NameTag"]))
                             $entity->setNameTag($edata["NameTag"]);
 
                         $entity->setNameTagVisible(true);
@@ -93,18 +63,18 @@ class PlayReplayTask extends PluginTask {
 
                     }
                 }
-                if ($sequenz["Action"] === "Move") {
+                if ($sequenz["Action"] === "Move") { //TODO
 
                     $entity = $this->spawendEntity[$sequenz["EntityId"]];
                     if ($entity instanceof Human) {
-                        $vec3 = $sequenz["Data"]["Position"];
-                        if (!is_null($vec3)) {
-                            $entity->newPosition = new Location($vec3["X"], $vec3["Y"], $vec3["Z"], $vec3["Yaw"], $vec3["Pitch"], $this->replay->getLevel());
+                        $vec3 = $sequenz["Data"]["Position"]                    if (!is_null($vec3)) {
+                            $entity->newPosition = new Location($vec3["X"], $vec3["Y"], $vec3["Z"], $vec3["Yaw"], $vec3["Pitch"], $this->replay->getWorld());
                             $entity->setRotation($vec3["Yaw"], $vec3["Pitch"]);
                             $this->processMovement($entity);
 
+
                             if (!($entity->getInventory()->getItemInHand()->getId() === $sequenz["Item"]["Id"])) {
-                                $entity->getInventory()->setItemInHand(Item::get($sequenz["Item"]["Id"]));
+false                         $entity->getInventory()->setItemInHand(Item::get($sequenz["Item"]["Id"]));
                                 $entity->getInventory()->sendHeldItem($entity->getViewers());
 
                             }
@@ -113,7 +83,7 @@ class PlayReplayTask extends PluginTask {
                 } elseif ($sequenz["Action"] === "Damage") {
                     $entity = $this->spawendEntity[$sequenz["EntityId"]];
                     if ($entity instanceof Entity) {
-                        $entity->broadcastEntityEvent(EntityEventPacket::HURT_ANIMATION);
+                        $entity->broadcastAnimation(new HurtAnimation($entity));
                     }
                 } elseif ($sequenz["Action"] === "Sneak") {
                     $entity = $this->spawendEntity[$sequenz["EntityId"]];
@@ -124,11 +94,11 @@ class PlayReplayTask extends PluginTask {
                     $entity = $this->spawendEntity[$sequenz["EntityId"]];
                     if ($entity instanceof Entity) {
                         $pk = new AnimatePacket();
-                        $pk->entityRuntimeId = $entity->getId();
+                        $pk->actorRuntimeId = $entity->getId();
                         $pk->action = $sequenz["Data"]["Animation"];
-                        $this->plugin->getServer()->broadcastPacket($entity->getViewers(), $pk);
+                        $entity->getWorld()->broadcastPacketToViewers($entity->getPosition()->asVector3(), $pk);
                     }
-                } elseif ($sequenz["Action"] === "Consume") {
+                } elseif ($sequenz["Action"] === "Consume") { //TODO
                     $entity = $this->spawendEntity[$sequenz["EntityId"]];
                     if ($entity instanceof Entity) {
                         if (!($entity->getInventory()->getItemInHand()->getId() === $sequenz["Item"]["Id"])) {
@@ -136,7 +106,7 @@ class PlayReplayTask extends PluginTask {
                             $entity->getInventory()->sendHeldItem($entity->getViewers());
                         }
 
-                        $entity->broadcastEntityEvent(EntityEventPacket::EATING_ITEM);
+                        $entity->broadcastAnimation(new ConsumingItemAnimation($entity, Item::get($sequenz["Item"]["Id"]));
                     }
                 } elseif ($sequenz["Action"] === "Quit") {
                     $entity = $this->spawendEntity[$sequenz["EntityId"]];
@@ -151,20 +121,20 @@ class PlayReplayTask extends PluginTask {
                     if ($entity instanceof Entity) {
                         $entity->getInventory()->setItemInHand(Item::get(Item::AIR));
                         $entity->getInventory()->sendHeldItem($entity->getViewers());
-                        $entity->broadcastEntityEvent(EntityEventPacket::DEATH_ANIMATION);
-                        $entity->broadcastEntityEvent(EntityEventPacket::RESPAWN);
+                        $entity->broadcastAnimation(new DeathAnimation($entity));
+                        $entity->broadcastAnimation(new RespawnAnimation($entity));
                         $entity->spawnToAll();
                     }
                 }
             }
         }
-        if ($this->tempStart >= ($this->stop - $this->start)) {
+        if ($this->tempStart >= ($this->stop - $this->start)){
             foreach ($this->spawendEntity as $entity) {
                 if ($entity instanceof Entity) {
                     $entity->close();
                 }
             }
-            foreach ($this->replay->getLevel()->getPlayers() as $p) {
+            foreach ($this->replay->getWorld()->getPlayers() as $p) {
                 $p->spawnToAll();
                 $p->sendMessage(ReplaySystem::PREFIX . " Stopped Replay");
             }
@@ -174,6 +144,7 @@ class PlayReplayTask extends PluginTask {
         }
     }
 
+    //TODO
     private function processMovement(Entity $entity) {
         $newPos = $entity->newPosition;
 
@@ -206,14 +177,13 @@ class PlayReplayTask extends PluginTask {
     }
 
     private function broadcastMovement(Entity $entity) {
-        $pk = new MoveEntityPacket();
-        $pk->entityRuntimeId = $entity->getId();
-        $pk->position = $entity->getOffsetPosition($entity);
-        $pk->yaw = $entity->yaw;
-        $pk->pitch = $entity->pitch;
-        $pk->headYaw = $entity->yaw; //TODO
-        $pk->teleported = false;
-        $entity->getLevel()->addChunkPacket($entity->chunk->getX(), $entity->chunk->getZ(), $pk);
+        $pk = new MoveActorAbsolutePacket();
+        $pk->actorRuntimeId = $entity->getId();
+        $pk->position = $entity->getOffsetPosition($entity->getLocation());
+        $pk->yaw = $entity->getLocation()->yaw;
+        $pk->pitch = $entity->getLocation()->pitch;
+        $pk->headYaw = $entity->getLocation()->yaw; //TODO
+        $pk->flag = $entity->onGround ? MoveActorAbsolutePacket::FLAG_GROUND : 0;
+        $entity->getWorld()->broadcastPacketToViewers($entity->getPosition()->asVector3(), $pk));
     }
-
 }
