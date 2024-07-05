@@ -1,15 +1,8 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: McpeBooster
- * Date: 07.03.2018
- * Time: 10:24
- */
 
 namespace ReplaySystem\Manager;
 
-
-use pocketmine\level\Level;
+use pocketmine\world\World;
 use ReplaySystem\ReplaySystem;
 use ReplaySystem\Task\PlayReplayTask;
 
@@ -18,23 +11,22 @@ class ReplayManager {
     public static $allReplays = [];
 
     /**
-     * @param Level $level
+     * @param World $world
      * @return bool
      */
-    public static function createReplay(Level $level) {
-        if (!self::getActiveReplayByLevel($level)) {
-            self::$allReplays = [];
-            self::$allReplays[] = new Replay($level);
-            //var_dump(self::$allReplays);
+    public static function createReplay(World $world) {
+        if (!self::getActiveReplayByWorld($world)) {
+           // self::$allReplays = [];
+            self::$allReplays[] = new Replay($world);
             return true;
         }
         return false;
     }
 
-    public static function getActiveReplayByLevel(Level $level) {
+    public static function getActiveReplayByWorld(World $world) {
         foreach (self::getAllActiveReplays() as $replay) {
             if ($replay instanceof Replay) {
-                if ($replay->getLevel()->getFolderName() === $level->getFolderName()) {
+                if ($replay->getWorld()->getFolderName() === $world->getFolderName()) {
                     return $replay;
                 }
             }
@@ -43,13 +35,13 @@ class ReplayManager {
     }
 
     /**
-     * @param Level $level
+     * @param World $world
      * @return bool|mixed
      */
-    public static function getReplayByLevel(Level $level) {
+    public static function getReplayByWorld(World $world) {
         foreach (self::getAllReplays() as $replay) {
             if ($replay instanceof Replay) {
-                if ($replay->getLevel()->getFolderName() === $level->getFolderName()) {
+                if ($replay->getWorld()->getFolderName() === $world->getFolderName()) {
                     return $replay;
                 }
             }
@@ -80,11 +72,11 @@ class ReplayManager {
     }
 
     /**
-     * @param Level $level
+     * @param World $world
      * @return bool
      */
-    public static function stopReplay(Level $level) {
-        $replay = self::getActiveReplayByLevel($level);
+    public static function stopReplay(World $world) {
+        $replay = self::getActiveReplayByWorld($world);
         if ($replay instanceof Replay) {
             if ($replay->isActive()) {
                 $replay->setActive(false);
@@ -95,23 +87,22 @@ class ReplayManager {
     }
 
     /**
-     * @param Level $level
+     * @param World $world
      * @param int $speed
      * @return bool
      */
-    public static function playReplay(Level $level, int $speed) {
-        $replay = self::getReplayByLevel($level);
+    public static function playReplay(World $world, int $speed) {
+        $replay = self::getReplayByWorld($world);
         if ($replay instanceof Replay) {
             if (!$replay->isActive()) {
                 if (!$replay->isPlaying()) {
                     $replay->setSpeed($speed);
                     $replay->setPlaying();
-                    foreach ($level->getPlayers() as $p) {
+                    foreach ($world->getPlayers() as $p) {
                         $p->despawnFromAll();
                         $p->sendMessage(ReplaySystem::PREFIX . " Starting Replay");
                     }
-                    $level->getServer()->getLogger()->info(ReplaySystem::PREFIX . " Starting Replay");
-                    $level->getServer()->getScheduler()->scheduleRepeatingTask(new PlayReplayTask($replay), 1);
+                    Server::getInstance()->getScheduler()->scheduleRepeatingTask(new PlayReplayTask($replay), 1);
                     return true;
                 }
             }
@@ -120,12 +111,12 @@ class ReplayManager {
     }
 
     /**
-     * @param Level $level
+     * @param World $world
      * @param string $id
      * @return bool
      */
-    public static function saveReplay(Level $level, string $id) {
-        $replay = self::getReplayByLevel($level);
+    public static function saveReplay(World $world, string $id) {
+        $replay = self::getReplayByWorld($world);
         if ($replay instanceof Replay) {
             if (!$replay->isActive()) {
                 if (!$replay->isPlaying()) {
@@ -139,17 +130,17 @@ class ReplayManager {
     /**
      * @param string $id
      * @param int $speed
-     * @param Level $currentLevel
+     * @param World $currentWorld
      * @return bool
      */
-    public static function playReplayFromFile(string $id, int $speed, Level $currentLevel){
+    public static function playReplayFromFile(string $id, int $speed, World $currentWorld){
         $path = ReplaySystem::getInstance()->getDataFolder() . "save/" . $id . ".json";
         if(file_exists($path)) {
-            $data = file_get_contents($path);
+            $data = $file_get_contents($path);
             $data = unserialize($data);
             if($currentLevel->getFolderName() === $data["levelname"]) {
-                $level = ReplaySystem::getInstance()->getServer()->getLevelByName($data["levelname"]);
-                if ($level instanceof Level) {
+                $level = ReplaySystem::getInstance()->getServer()->getWorldManager()->getWorldByName($data["levelname"]);
+                if ($level instanceof World) {
                     $replay = new Replay($level, $data);
                     $replay->setSpeed($speed);
                     $replay->setPlaying();
@@ -157,8 +148,7 @@ class ReplayManager {
                         $p->despawnFromAll();
                         $p->sendMessage(ReplaySystem::PREFIX . " Starting Saved Replay");
                     }
-                    $level->getServer()->getLogger()->info(ReplaySystem::PREFIX . " Starting Saved Replay");
-                    $level->getServer()->getScheduler()->scheduleRepeatingTask(new PlayReplayTask($replay), 1);
+                    Server::getInstance()->getScheduler()->scheduleRepeatingTask(new PlayReplayTask($replay), 1);
                     return true;
                 }
             }
