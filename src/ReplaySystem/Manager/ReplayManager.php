@@ -138,13 +138,13 @@ class ReplayManager {
         if(file_exists($path)) {
             $data = $file_get_contents($path);
             $data = unserialize($data);
-            if($currentLevel->getFolderName() === $data["levelname"]) {
-                $level = ReplaySystem::getInstance()->getServer()->getWorldManager()->getWorldByName($data["levelname"]);
+            if($currentWorld->getFolderName() === $data["worldname"]) {
+                $world = ReplaySystem::getInstance()->getServer()->getWorldManager()->getWorldByName($data["levelname"]);
                 if ($level instanceof World) {
-                    $replay = new Replay($level, $data);
+                    $replay = new Replay($world, $data);
                     $replay->setSpeed($speed);
                     $replay->setPlaying();
-                    foreach ($level->getPlayers() as $p) {
+                    foreach ($world->getPlayers() as $p) {
                         $p->despawnFromAll();
                         $p->sendMessage(ReplaySystem::PREFIX . " Starting Saved Replay");
                     }
