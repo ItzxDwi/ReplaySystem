@@ -65,7 +65,7 @@ class Replay {
             return ($this->state = self::REPLAY_ACTIVE);
 
         $this->state = self::REPLAY_INACTIVE;
-        $this->stop = $this->level->getServer()->getTick();
+        $this->stop = Server::getInstance()->getTick();
         return true;
     }
 
@@ -81,7 +81,7 @@ class Replay {
      * @return array
      */
     public function addEntry(string $action, int $entityid = null, $data = null, $item = null) {
-        return $this->replayData[$this->level->getServer()->getTick() - $this->start][] = ["Action" => $action, "EntityId" => $entityid, "Data" => $data, "Item" => $item];
+        return $this->replayData[Server::getInstance()->getTick() - $this->start][] = ["Action" => $action, "EntityId" => $entityid, "Data" => $data, "Item" => $item];
     }
 
     /**
@@ -192,7 +192,7 @@ class Replay {
         if(!file_exists($path)) {
             $data = [
                 "state" => $this->state,
-                "levelname" => $this->level->getFolderName(),
+                "worldname" => $this->world->getFolderName(),
                 "start" => $this->start,
                 "stop" => $this->stop,
                 "replayData" => $this->replayData,
