@@ -139,8 +139,8 @@ class ReplayManager {
             $data = $file_get_contents($path);
             $data = unserialize($data);
             if($currentWorld->getFolderName() === $data["worldname"]) {
-                $world = ReplaySystem::getInstance()->getServer()->getWorldManager()->getWorldByName($data["levelname"]);
-                if ($level instanceof World) {
+                $world = ReplaySystem::getInstance()->getServer()->getWorldManager()->getWorldByName($data["worldname"]);
+                if ($world instanceof World) {
                     $replay = new Replay($world, $data);
                     $replay->setSpeed($speed);
                     $replay->setPlaying();
