@@ -1,18 +1,12 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: McpeBooster
- * Date: 07.03.2018
- * Time: 10:29
- */
 
 namespace ReplaySystem\Manager;
-
 
 use pocketmine\entity\Entity;
 use pocketmine\entity\Human;
 use pocketmine\item\Item;
-use pocketmine\level\Level;
+use pocketmine\world\World;
+use pocketmine\Server;
 use ReplaySystem\ReplaySystem;
 
 class Replay {
@@ -22,7 +16,7 @@ class Replay {
     const REPLAY_PLAYING = 2;
 
     private $state;
-    private $level;
+    private $world;
 
     private $start;
     private $stop;
@@ -32,9 +26,9 @@ class Replay {
     private $replayData = [];
     private $entityData = [];
 
-    public function __construct(Level $level, $data = null) {
-        $this->level = $level;
-        $this->start = $level->getServer()->getTick();
+    public function __construct(World $world, $data = null) {
+        $this->world = $world;
+        $this->start = Server::getInstance()->getTick();
 
         if(is_array($data)) {
             foreach ($data as $index => $d){
@@ -75,11 +69,8 @@ class Replay {
         return true;
     }
 
-    /**
-     * @return Level
-     */
-    public function getLevel(): Level {
-        return $this->level;
+    public function getWorld(): World {
+        return $this->world;
     }
 
     /**
@@ -207,7 +198,6 @@ class Replay {
                 "replayData" => $this->replayData,
                 "entityData" => $this->entityData,
             ];
-            //var_dump(serialize($data));
             file_put_contents($path, serialize($data));
             return true;
         }
