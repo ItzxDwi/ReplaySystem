@@ -1,6 +1,6 @@
 name: ReplaySystem
 main: ReplaySystem\ReplaySystem
 version: 1.2.0
-api: 3.0.0-ALPHA11
-author: McpeBooster
-website: twitter.com/McpeBooster
+api: 5.0.0
+author: [McpeBooster, ItzxDwi]
+website: https://github.com/ItzxDwi/ReplaySystem
